@@ -86,7 +86,7 @@ function StepStatus({ completed, canStart }: { completed: boolean; canStart: boo
   return <span className="status-label is-progress"><Circle size={10} fill="currentColor" /> Em andamento</span>;
 }
 
-function Sidebar({ activeView, setActiveView, collapsed, setCollapsed }: { activeView: ViewId; setActiveView: (view: ViewId) => void; collapsed: boolean; setCollapsed: (value: boolean) => void }) {
+function Sidebar({ activeView, setActiveView, collapsed, setCollapsed, progress }: { activeView: ViewId; setActiveView: (view: ViewId) => void; collapsed: boolean; setCollapsed: (value: boolean) => void; progress: number }) {
   return (
     <aside className={cn("sidebar", collapsed && "sidebar-collapsed")}>
       <div className="brand-lockup">
@@ -107,8 +107,8 @@ function Sidebar({ activeView, setActiveView, collapsed, setCollapsed }: { activ
         <div className="sidebar-bottom">
           <div className="sidebar-card">
             <span className="mini-eyebrow">STATUS DA ROTA</span>
-            <div className="sidebar-progress-line"><span>Pleno → Sênior</span><b>42%</b></div>
-            <ProgressBar value={42} tone="mint" />
+            <div className="sidebar-progress-line"><span>Pleno → Sênior</span><b>{progress}%</b></div>
+            <ProgressBar value={progress} tone="mint" />
             <span className="sidebar-card-copy">Continue constante. O próximo salto é técnico.</span>
           </div>
           <button className="sidebar-settings"><Settings2 size={16} /> Preferências da trilha <ChevronRight size={15} /></button>
@@ -289,5 +289,5 @@ export default function Home() {
 
   const handleNavigation = (view: ViewId) => { setActiveView(view); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
-  return <div className="app-shell"><div className={cn("mobile-backdrop", mobileMenuOpen && "visible")} onClick={() => setMobileMenuOpen(false)} /><div className={cn("sidebar-wrap", mobileMenuOpen && "mobile-open")}><Sidebar activeView={activeView} setActiveView={handleNavigation} collapsed={collapsed} setCollapsed={setCollapsed} /></div><main className="main-area"><PageHeader activeView={activeView} onMobileMenu={() => setMobileMenuOpen(true)} />{activeView === "overview" && <Overview completed={completed} canStart={canStart} onToggle={toggleStep} progress={progress} nextStep={nextStep} unlockedAchievements={unlockedAchievements} />}{activeView === "roadmap" && <Roadmap completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "certifications" && <CertificationsView completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "achievements" && <AchievementsView completed={completed} />}</main></div>;
+  return <div className="app-shell"><div className={cn("mobile-backdrop", mobileMenuOpen && "visible")} onClick={() => setMobileMenuOpen(false)} /><div className={cn("sidebar-wrap", mobileMenuOpen && "mobile-open")}><Sidebar activeView={activeView} setActiveView={handleNavigation} collapsed={collapsed} setCollapsed={setCollapsed} progress={progress} /></div><main className="main-area"><PageHeader activeView={activeView} onMobileMenu={() => setMobileMenuOpen(true)} />{activeView === "overview" && <Overview completed={completed} canStart={canStart} onToggle={toggleStep} progress={progress} nextStep={nextStep} unlockedAchievements={unlockedAchievements} />}{activeView === "roadmap" && <Roadmap completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "certifications" && <CertificationsView completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "achievements" && <AchievementsView completed={completed} />}</main></div>;
 }
