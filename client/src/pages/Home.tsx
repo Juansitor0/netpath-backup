@@ -27,6 +27,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import Catalog from "./Catalog";
 import {
   achievements,
   certifications,
@@ -43,6 +44,7 @@ const navItems: { id: ViewId; label: string; icon: typeof LayoutDashboard }[] = 
   { id: "overview", label: "Visão geral", icon: LayoutDashboard },
   { id: "roadmap", label: "Minha trilha", icon: Route },
   { id: "certifications", label: "Certificações", icon: Award },
+  { id: "catalog", label: "Catálogo", icon: BookOpen },
   { id: "achievements", label: "Conquistas", icon: Trophy },
 ];
 
@@ -289,5 +291,5 @@ export default function Home() {
 
   const handleNavigation = (view: ViewId) => { setActiveView(view); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
-  return <div className="app-shell"><div className={cn("mobile-backdrop", mobileMenuOpen && "visible")} onClick={() => setMobileMenuOpen(false)} /><div className={cn("sidebar-wrap", mobileMenuOpen && "mobile-open")}><Sidebar activeView={activeView} setActiveView={handleNavigation} collapsed={collapsed} setCollapsed={setCollapsed} progress={progress} /></div><main className="main-area"><PageHeader activeView={activeView} onMobileMenu={() => setMobileMenuOpen(true)} />{activeView === "overview" && <Overview completed={completed} canStart={canStart} onToggle={toggleStep} progress={progress} nextStep={nextStep} unlockedAchievements={unlockedAchievements} />}{activeView === "roadmap" && <Roadmap completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "certifications" && <CertificationsView completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "achievements" && <AchievementsView completed={completed} />}</main></div>;
+  return <div className="app-shell"><div className={cn("mobile-backdrop", mobileMenuOpen && "visible")} onClick={() => setMobileMenuOpen(false)} /><div className={cn("sidebar-wrap", mobileMenuOpen && "mobile-open")}><Sidebar activeView={activeView} setActiveView={handleNavigation} collapsed={collapsed} setCollapsed={setCollapsed} progress={progress} /></div><main className="main-area"><PageHeader activeView={activeView} onMobileMenu={() => setMobileMenuOpen(true)} />{activeView === "overview" && <Overview completed={completed} canStart={canStart} onToggle={toggleStep} progress={progress} nextStep={nextStep} unlockedAchievements={unlockedAchievements} />}{activeView === "roadmap" && <Roadmap completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "certifications" && <CertificationsView completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "catalog" && <Catalog />}{activeView === "achievements" && <AchievementsView completed={completed} />}</main></div>;
 }

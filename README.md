@@ -85,8 +85,11 @@ O `origin` gerenciado pela Manus continua sendo o repositório principal. O remo
 - [`docs/catalog-import.md`](docs/catalog-import.md): formato JSON/CSV e regras de importação.
 - [`docs/manual-update.md`](docs/manual-update.md): checklist para alterações manuais.
 - [`docs/integrations/nicbr.md`](docs/integrations/nicbr.md): primeira fonte externa planejada.
+- [`docs/deployment-github-pages.md`](docs/deployment-github-pages.md): publicação automática e limites do GitHub Pages.
 - [`data/catalog/README.md`](data/catalog/README.md): finalidade dos arquivos versionados.
 
 ## Próxima fase
 
-A próxima implementação funcional deve ativar backend e banco, criar a tela de importação com prévia, salvar histórico e conectar o catálogo à trilha. Depois entra a sincronização diária da agenda pública do NIC.br.
+A versão atual já possui backend Express/tRPC, banco MySQL gerenciado, migration, seed das certificações e tela de catálogo. O deploy principal usa frontend estático + API no mesmo domínio: `/api/*` chega ao container e os assets chegam ao host estático.
+
+O GitHub Pages continua disponível para uma cópia estática do MVP, publicada pelo workflow em `.github/workflows/deploy-pages.yml`. Ele não substitui o backend: importação persistente, login, banco e sincronização NIC.br continuam dependendo de um servidor. A próxima evolução é implementar a sincronização diária da agenda pública do NIC.br.

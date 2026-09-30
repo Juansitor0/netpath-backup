@@ -1,6 +1,6 @@
 export type StageId = "base" | "fundamentos" | "especialista" | "avancado";
 export type StepStatus = "done" | "in-progress" | "locked";
-export type ViewId = "overview" | "roadmap" | "certifications" | "achievements";
+export type ViewId = "overview" | "roadmap" | "certifications" | "catalog" | "achievements";
 
 export type RoadmapStep = {
   id: string;

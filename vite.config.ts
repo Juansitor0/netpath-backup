@@ -169,8 +169,10 @@ function vitePluginPublicPlatformConfig(): Plugin {
 }
 
 const plugins = [vitePluginPublicPlatformConfig(), react(), tailwindcss(), jsxLocPlugin(), vitePluginManusDebugCollector()];
+const githubPagesBase = process.env.GITHUB_ACTIONS ? "/netpath-backup/" : "/";
 
 export default defineConfig({
+  base: githubPagesBase,
   plugins,
   resolve: {
     alias: {

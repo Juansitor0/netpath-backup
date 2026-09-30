@@ -4,7 +4,7 @@
 Entregar um produto interno, em português, que ajude profissionais de redes a construir uma trajetória rumo ao nível sênior, conectando conhecimentos, certificações, cursos, pré-requisitos, progresso e conquistas.
 
 ## Estado atual
-O MVP visual já está funcional com dashboard, trilha, certificações, filtros, progresso local e achievements. A próxima fase organiza o repositório e cria os contratos para catálogo/importação, sem ativar ainda recursos gerenciados irreversíveis.
+O MVP visual já está funcional com dashboard, trilha, certificações, filtros, progresso local e achievements. A organização do catálogo foi concluída e o projeto agora possui servidor e banco gerenciados habilitados, com API tRPC, migration persistente, seed inicial e tela de catálogo.
 
 ## Fase 1 — Organização e contratos de catálogo
 - Reorganizar a documentação do repositório em `docs/`.
@@ -15,9 +15,9 @@ O MVP visual já está funcional com dashboard, trilha, certificações, filtros
 - Manter o frontend atual funcionando com seus dados locais enquanto a persistência ainda não foi habilitada.
 
 ## Fase 2 — Persistência e importação no produto
-- Ativar servidor e banco gerenciados somente quando a estrutura de catálogo estiver aprovada.
+- Servidor e banco gerenciados habilitados de forma permanente após aprovação da estrutura de catálogo.
 - Criar tabelas para fontes, itens de catálogo, certificações, relações com a trilha, importações e sincronizações.
-- Expor API para prévia, validação, confirmação e histórico de importações JSON/CSV.
+- Expor API para listagem, prévia, validação, confirmação e histórico de importações JSON/CSV.
 - Migrar o estado de progresso e catálogo local para a API sem perder o comportamento atual.
 
 ## Fase 3 — Monitoramento do NIC.br
@@ -31,10 +31,11 @@ O MVP visual já está funcional com dashboard, trilha, certificações, filtros
 - **Frontend:** React + TypeScript + Vite do starter web-db-user.
 - **Contratos:** tipos e schemas compartilhados em `shared/catalog.ts`, usados por importadores e futuramente pela API.
 - **Estado atual:** React state e localStorage para progresso no MVP; o catálogo de integração começa versionado em arquivos.
-- **Serving futuro:** frontend SPA/CSR estático + backend Express/tRPC em `/api/*` para dados dinâmicos.
-- **Persistência futura:** MySQL gerenciado com Drizzle, ativado somente na Fase 2. A habilitação é one-way e o banco de desenvolvimento/publicação compartilha os dados.
+- **Serving:** frontend SPA/CSR estático + backend Express/tRPC em `/api/*` para dados dinâmicos, no mesmo domínio publicado.
+- **Persistência:** MySQL gerenciado com Drizzle; o banco de desenvolvimento/publicação compartilha os dados e a habilitação é one-way.
 - **Fontes externas:** cada fonte possui um adaptador isolado; o NIC.br começa por agenda pública, sem presumir uma API REST pública ou RSS não confirmado.
-- **Cache:** assets versionados com cache longo; HTML revalidável; APIs de catálogo sem cache compartilhado enquanto houver dados personalizados ou mutáveis.
+- **Cache:** assets versionados com cache imutável; HTML com fallback de SPA; APIs de catálogo sem cache compartilhado enquanto houver dados mutáveis.
+- **Deploy:** Dockerfile para Express + build estático `dist/public`; `/api/*` vai para o servidor e demais páginas para o host estático.
 - **Backup:** GitHub privado `Juansitor0/netpath-backup` permanece como cópia externa, sem substituir o repositório gerenciado principal.
 
 ## Estrutura de arquivos
