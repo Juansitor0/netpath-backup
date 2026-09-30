@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "manual",
+      "name": "Catálogo manual",
+      "kind": "manual",
+      "status": "active",
+      "syncPolicy": "on-demand",
+      "homepage": "https://netpath.local/catalogo"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "cert-exemplo",
+      "sourceId": "manual",
+      "name": "Nome da certificação",
+      "provider": "Fabricante ou instituição",
+      "level": "Intermediário",
+      "description": "Por que esta certificação importa na sua rota.",
+      "url": "https://exemplo.org/certificacao",
+      "roadmapStepId": "routing",
+      "prerequisites": ["subnetting"],
+      "topics": ["Routing", "Troubleshooting"],
+      "status": "active",
+      "updatedAt": "2026-09-29"
+    }
+  ],
+  "items": [
+    {
+      "id": "curso-exemplo",
+      "sourceId": "manual",
+      "externalId": "turma-001",
+      "type": "course",
+      "title": "Curso de exemplo para a trilha",
+      "provider": "Instituição",
+      "description": "Descrição curta e objetiva do curso.",
+      "url": "https://exemplo.org/curso",
+      "modality": "online",
+      "status": "upcoming",
+      "startDate": "2026-10-10",
+      "registrationEnd": "2026-10-05",
+      "durationHours": 40,
+      "topics": ["IPv6", "Routing"],
+      "certificationIds": ["cert-exemplo"],
+      "tags": ["gratuito", "redes"],
+      "updatedAt": "2026-09-29"
+    }
+  ]
+}

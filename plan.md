@@ -1,38 +1,56 @@
 # Plano — NetPath
 
 ## Objetivo
-Entregar um MVP interno, em português, que ajude profissionais de redes a visualizar e executar uma trajetória rumo ao nível sênior, conectando conhecimentos, certificações, pré-requisitos, progresso e conquistas.
+Entregar um produto interno, em português, que ajude profissionais de redes a construir uma trajetória rumo ao nível sênior, conectando conhecimentos, certificações, cursos, pré-requisitos, progresso e conquistas.
 
-## Escopo do MVP
-- Navegação entre Visão geral, Trilha, Certificações e Conquistas.
-- Dashboard com progresso geral, etapas concluídas, indicadores e próxima ação recomendada.
-- Trilha visual do nível base ao sênior.
-- Conteúdo inicial realista com fundamentos de redes, Cisco, Junos, HCI-Datacom e CNNA.
-- Cards de certificação com fabricante, nível, pré-requisitos, status e ação.
-- Filtros por fabricante, nível e status.
-- Marcação local de etapas concluídas, com atualização imediata do dashboard.
-- Achievements desbloqueados por marcos.
-- Estrutura de dados desacoplada para futura autenticação, persistência e integração/exportação.
+## Estado atual
+O MVP visual já está funcional com dashboard, trilha, certificações, filtros, progresso local e achievements. A próxima fase organiza o repositório e cria os contratos para catálogo/importação, sem ativar ainda recursos gerenciados irreversíveis.
+
+## Fase 1 — Organização e contratos de catálogo
+- Reorganizar a documentação do repositório em `docs/`.
+- Criar um contrato tipado e validável para cursos, eventos, certificações, fontes e importações.
+- Criar exemplos JSON/CSV para manutenção manual sem Google Drive.
+- Registrar o NIC.br como primeira fonte externa, usando as páginas públicas oficiais como origem inicial.
+- Criar uma interface de adaptadores para que Cisco, Juniper, Huawei e outras fontes possam ser adicionadas sem misturar regras no frontend.
+- Manter o frontend atual funcionando com seus dados locais enquanto a persistência ainda não foi habilitada.
+
+## Fase 2 — Persistência e importação no produto
+- Ativar servidor e banco gerenciados somente quando a estrutura de catálogo estiver aprovada.
+- Criar tabelas para fontes, itens de catálogo, certificações, relações com a trilha, importações e sincronizações.
+- Expor API para prévia, validação, confirmação e histórico de importações JSON/CSV.
+- Migrar o estado de progresso e catálogo local para a API sem perder o comportamento atual.
+
+## Fase 3 — Monitoramento do NIC.br
+- Implementar um adaptador determinístico para a agenda pública do NIC.br.
+- Normalizar cursos, eventos e períodos de inscrição.
+- Adicionar botão de sincronização manual e rotina diária no backend publicado.
+- Detectar novos itens e alterações sem sobrescrever edições editoriais manuais.
+- Usar endpoints internos somente após validação técnica e apenas como fallback, pois podem mudar sem aviso.
 
 ## Decisões de arquitetura
 - **Frontend:** React + TypeScript + Vite do starter web-db-user.
-- **Estado:** React state no cliente, com persistência opcional em localStorage para que o progresso sobreviva a refreshes nesta primeira versão.
-- **Dados:** arrays tipados em módulo separado, sem acoplamento a componentes, facilitando futura substituição por API/banco.
-- **Serving:** SPA/CSR estática, porque o conteúdo do MVP pode ser entregue como frontend e as interações são locais.
-- **Build:** `pnpm build:static`, com saída em `dist/public` conforme o starter.
-- **Rotas:** uma rota de aplicação (`/`) com navegação por estado interno; `manus-routes.json` declara `/`.
-- **Cache:** assets versionados do build podem ser cacheados pelo host; HTML deve permanecer revalidável. Não há API dinâmica ou resposta privada no MVP.
-- **Infra:** manter server e database desativados nesta etapa. Ativar depois somente quando login, múltiplos perfis ou sincronização forem implementados.
+- **Contratos:** tipos e schemas compartilhados em `shared/catalog.ts`, usados por importadores e futuramente pela API.
+- **Estado atual:** React state e localStorage para progresso no MVP; o catálogo de integração começa versionado em arquivos.
+- **Serving futuro:** frontend SPA/CSR estático + backend Express/tRPC em `/api/*` para dados dinâmicos.
+- **Persistência futura:** MySQL gerenciado com Drizzle, ativado somente na Fase 2. A habilitação é one-way e o banco de desenvolvimento/publicação compartilha os dados.
+- **Fontes externas:** cada fonte possui um adaptador isolado; o NIC.br começa por agenda pública, sem presumir uma API REST pública ou RSS não confirmado.
+- **Cache:** assets versionados com cache longo; HTML revalidável; APIs de catálogo sem cache compartilhado enquanto houver dados personalizados ou mutáveis.
+- **Backup:** GitHub privado `Juansitor0/netpath-backup` permanece como cópia externa, sem substituir o repositório gerenciado principal.
 
 ## Estrutura de arquivos
-- `client/src/pages/Home.tsx`: shell da aplicação, navegação e composição de seções.
-- `client/src/data/netpath.ts`: tipos e conteúdo inicial da trilha, certificações e conquistas.
-- `client/src/index.css`: tokens de cor, tipografia, layout responsivo e componentes visuais do produto.
+- `client/src/pages/Home.tsx`: shell atual da aplicação e navegação.
+- `client/src/data/netpath.ts`: conteúdo local inicial da trilha, certificações e conquistas.
+- `client/src/index.css`: tokens, tipografia e layout visual.
+- `shared/catalog.ts`: contrato comum para importação, fontes e itens de catálogo.
+- `server/catalog/`: parsers, normalizadores e adaptadores de fontes externas.
+- `data/catalog/`: arquivos versionados de referência e exemplos de importação.
+- `docs/`: decisões de arquitetura, formato de importação e documentação de integrações.
 - `client/public/manus-routes.json`: manifesto de rotas da aplicação.
-- `logo.png` e `app.config.ts`: branding do projeto e sincronização do logo.
+- `app.config.ts` e arquivos `netpath-logo.*`: branding e metadados do projeto.
 
 ## Validação
 - `pnpm check` para validar TypeScript.
-- `pnpm build:static` para verificar a build publicada do frontend.
-- Servidor `pnpm dev:static` no port 3000 e request HTTP a `/` e `/manus-routes.json`.
-- Inspeção de código para verificar que filtros, progresso, recomendações e achievements usam a mesma fonte de estado.
+- `pnpm test` para validar schemas e parsers de catálogo.
+- `pnpm build:static` para verificar a build atual do frontend.
+- Requests HTTP a `/` e `/manus-routes.json` quando o preview estiver em execução.
+- Inspeção de código para garantir que importadores não sobrescrevem dados sem uma etapa explícita de confirmação.

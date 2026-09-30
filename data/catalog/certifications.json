@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "certifications": [
+    {
+      "id": "cert-cisco",
+      "sourceId": "manual",
+      "name": "Cisco Networking Basics",
+      "provider": "Cisco",
+      "level": "Base",
+      "description": "Primeira validação formal da base de redes, switching e routing.",
+      "roadmapStepId": "cisco-basics",
+      "prerequisites": ["fundamentos", "subnetting", "routing"],
+      "topics": ["IPv4", "Switching", "Routing"],
+      "status": "active",
+      "updatedAt": "2026-09-29"
+    },
+    {
+      "id": "cert-junos",
+      "sourceId": "manual",
+      "name": "JNCIA-Junos",
+      "provider": "Juniper",
+      "level": "Intermediário",
+      "description": "Trilha de operação Junos, hierarquia de configuração e commit.",
+      "roadmapStepId": "junos",
+      "prerequisites": ["fundamentos", "routing"],
+      "topics": ["Junos", "Routing", "Multivendor"],
+      "status": "active",
+      "updatedAt": "2026-09-29"
+    },
+    {
+      "id": "cert-hcia",
+      "sourceId": "manual",
+      "name": "HCIA-Datacom",
+      "provider": "HCI-Datacom",
+      "level": "Intermediário",
+      "description": "Certificação alternativa para routing, switching e operação Datacom.",
+      "roadmapStepId": "hcia",
+      "prerequisites": ["fundamentos", "routing"],
+      "topics": ["Datacom", "Huawei", "Switching"],
+      "status": "active",
+      "updatedAt": "2026-09-29"
+    },
+    {
+      "id": "cert-cnna",
+      "sourceId": "manual",
+      "name": "CNNA",
+      "provider": "Trilha alvo",
+      "level": "Avançado",
+      "description": "Etapa avançada que conecta operação, automação e visão de arquitetura.",
+      "roadmapStepId": "cnna",
+      "prerequisites": ["automation", "troubleshooting", "design"],
+      "topics": ["Arquitetura", "Automação", "Troubleshooting"],
+      "status": "active",
+      "updatedAt": "2026-09-29"
+    }
+  ]
+}

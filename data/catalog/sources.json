@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "manual",
+      "name": "Catálogo manual",
+      "kind": "manual",
+      "status": "active",
+      "syncPolicy": "on-demand",
+      "homepage": "https://netpath.local/catalogo",
+      "notes": "Registros editoriais importados por JSON ou CSV."
+    },
+    {
+      "id": "nicbr",
+      "name": "NIC.br — Cursos e eventos",
+      "kind": "agenda",
+      "status": "active",
+      "syncPolicy": "daily",
+      "homepage": "https://cursoseventos.nic.br/agenda",
+      "endpoint": "https://cursoseventos.nic.br/agenda",
+      "notes": "Agenda pública oficial; endpoint interno não é tratado como contrato estável."
+    }
+  ]
+}
