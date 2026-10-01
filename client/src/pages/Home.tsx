@@ -28,6 +28,8 @@ import {
   Zap,
 } from "lucide-react";
 import Catalog from "./Catalog";
+import OnboardingCard from "../components/OnboardingCard";
+import { trpc } from "../lib/trpc";
 import {
   achievements,
   certifications,
@@ -199,6 +201,7 @@ function Overview({ completed, canStart, onToggle, progress, nextStep, unlockedA
   const currentStage = completedCount < 4 ? "Fundamentos" : completedCount < 8 ? "Especialista" : "Avançado";
   return (
     <div className="view-content overview-content">
+      <OnboardingCard />
       <div className="overview-grid">
         <div className="stats-grid">
           <StatCard label="PROGRESSO GERAL" value={`${progress}%`} detail="da trilha concluída" icon={Gauge} tone="cyan" progress={progress} />
@@ -279,11 +282,25 @@ export default function Home() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [completed, setCompleted] = useState<Record<string, boolean>>(getStoredProgress);
+  const authQuery = trpc.auth.me.useQuery(undefined, { retry: false });
+  const workspaceQuery = trpc.progress.workspace.useQuery(undefined, { enabled: Boolean(authQuery.data), retry: false });
+  const progressMutation = trpc.progress.set.useMutation();
 
   useEffect(() => { window.localStorage.setItem("netpath-progress", JSON.stringify(completed)); }, [completed]);
+  useEffect(() => {
+    if (!workspaceQuery.data || workspaceQuery.data.progress.length === 0) return;
+    const remoteCompleted = Object.fromEntries(workspaceQuery.data.progress.filter((item) => item.status === "completed").map((item) => [item.stepId, true]));
+    setCompleted((current) => ({ ...current, ...remoteCompleted }));
+  }, [workspaceQuery.data]);
 
   const canStart = (step: RoadmapStep) => step.dependencies.every((dependency) => completed[dependency]);
-  const toggleStep = (id: string) => setCompleted((current) => ({ ...current, [id]: !current[id] }));
+  const toggleStep = (id: string) => {
+    const nextCompleted = !completed[id];
+    setCompleted((current) => ({ ...current, [id]: nextCompleted }));
+    if (authQuery.data) {
+      progressMutation.mutate({ stepId: id, status: nextCompleted ? "completed" : "not_started" });
+    }
+  };
   const completedCount = roadmapSteps.filter((step) => completed[step.id]).length;
   const progress = Math.round((completedCount / roadmapSteps.length) * 100);
   const nextStep = roadmapSteps.find((step) => !completed[step.id] && canStart(step)) ?? roadmapSteps[roadmapSteps.length - 1];

@@ -1,4 +1,4 @@
-import { boolean, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, json, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /** Usuários da autenticação Manus e permissões do produto. */
 export const users = mysqlTable("users", {
@@ -12,6 +12,46 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
+
+/** Perfil profissional e estado do onboarding do usuário. */
+export const userProfiles = mysqlTable("user_profiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique().references(() => users.id),
+  roleTitle: varchar("roleTitle", { length: 160 }),
+  yearsExperience: int("yearsExperience"),
+  currentLevel: mysqlEnum("currentLevel", ["base", "fundamentos", "pleno", "senior"]).default("base").notNull(),
+  onboardingStatus: mysqlEnum("onboardingStatus", ["not_started", "in_progress", "completed"]).default("not_started").notNull(),
+  quizScore: int("quizScore"),
+  skills: json("skills").$type<string[]>().notNull(),
+  confirmedAt: timestamp("confirmedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Respostas e recomendação geradas durante o onboarding. */
+export const onboardingSessions = mysqlTable("onboarding_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  status: mysqlEnum("status", ["started", "completed", "abandoned"]).default("started").notNull(),
+  answers: json("answers").$type<Record<string, unknown>>().notNull(),
+  recommendedLevel: mysqlEnum("recommendedLevel", ["base", "fundamentos", "pleno", "senior"]),
+  confirmedLevel: mysqlEnum("confirmedLevel", ["base", "fundamentos", "pleno", "senior"]),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Progresso real dos nós da trilha, separado do catálogo editorial. */
+export const userProgress = mysqlTable("user_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  stepId: varchar("stepId", { length: 120 }).notNull(),
+  status: mysqlEnum("status", ["not_started", "in_progress", "completed", "skipped"]).default("not_started").notNull(),
+  source: mysqlEnum("source", ["manual", "onboarding", "import"]).default("manual").notNull(),
+  completedAt: timestamp("completedAt"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userStepUnique: uniqueIndex("user_progress_user_step_unique").on(table.userId, table.stepId),
+}));
 
 /** Fontes editoriais, agendas e APIs que alimentam o catálogo. */
 export const catalogSources = mysqlTable("catalog_sources", {
@@ -101,6 +141,10 @@ export const catalogSyncRuns = mysqlTable("catalog_sync_runs", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = typeof userProfiles.$inferInsert;
+export type OnboardingSession = typeof onboardingSessions.$inferSelect;
+export type UserProgress = typeof userProgress.$inferSelect;
 export type CatalogSource = typeof catalogSources.$inferSelect;
 export type InsertCatalogSource = typeof catalogSources.$inferInsert;
 export type CatalogItem = typeof catalogItems.$inferSelect;

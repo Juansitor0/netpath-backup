@@ -39,7 +39,7 @@ const db = await getDb();
 
 As consultas específicas ficam separadas por domínio. O catálogo, por exemplo, usa `server/catalog/repository.ts`. O navegador nunca recebe a URL de conexão nem executa SQL diretamente.
 
-O banco é compartilhado entre o ambiente de desenvolvimento gerenciado e a publicação. Portanto, uma migration aplicada pelo comando de desenvolvimento altera a estrutura utilizada pelo site publicado. Isso torna obrigatório revisar e testar migrations antes de executá-las.
+O banco é compartilhado entre o ambiente de desenvolvimento gerenciado e a publicação. Portanto, uma migration aplicada pelo comando de desenvolvimento altera a estrutura utilizada pelo site publicado. Isso torna obrigatório revisar e testar migrations antes de executá-las. A migration atual já inclui `user_profiles`, `onboarding_sessions` e `user_progress`.
 
 ## Onde criar tabelas
 
@@ -95,4 +95,4 @@ Um agente de IA pode ser adicionado depois para interpretar perfil, sugerir busc
 
 ## Estratégia para o futuro
 
-A próxima camada será formada por `profiles`, `roadmap_nodes`, `roadmap_dependencies`, `user_progress`, `labs`, `achievements` e `user_achievements`. O onboarding e o cálculo do “Próximo Salto” usarão primeiro regras persistentes; a IA entrará como camada de recomendação e explicação, não como substituta das regras.
+O onboarding e o progresso já usam `user_profiles`, `onboarding_sessions` e `user_progress`. As próximas tabelas serão `roadmap_nodes`, `roadmap_dependencies`, `labs`, `achievements` e `user_achievements`. O cálculo do “Próximo Salto” usará primeiro regras persistentes; a IA entrará como camada de recomendação e explicação, não como substituta das regras.

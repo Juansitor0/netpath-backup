@@ -15,6 +15,13 @@
       "when": 1790778969920,
       "tag": "0001_melted_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1790873563830,
+      "tag": "0002_gorgeous_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }

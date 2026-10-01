@@ -18,6 +18,7 @@ O MVP visual já está funcional com dashboard, trilha, certificações, filtros
 - Servidor e banco gerenciados habilitados de forma permanente após aprovação da estrutura de catálogo.
 - Criar tabelas para fontes, itens de catálogo, certificações, relações com a trilha, importações e sincronizações.
 - Expor API para listagem, prévia, validação, confirmação e histórico de importações JSON/CSV.
+- Persistir perfil, onboarding e progresso por usuário, mantendo fallback local quando não houver sessão.
 - Migrar o estado de progresso e catálogo local para a API sem perder o comportamento atual.
 
 ## Fase 3 — Monitoramento do NIC.br
@@ -26,6 +27,14 @@ O MVP visual já está funcional com dashboard, trilha, certificações, filtros
 - Adicionar botão de sincronização manual e rotina diária no backend publicado.
 - Detectar novos itens e alterações sem sobrescrever edições editoriais manuais.
 - Usar endpoints internos somente após validação técnica e apenas como fallback, pois podem mudar sem aviso.
+
+## Entrega funcional atual
+
+- `user_profiles`, `onboarding_sessions` e `user_progress` já estão no banco.
+- `progress.workspace` lê o perfil e o progresso do usuário autenticado.
+- `progress.set` salva cada checkpoint concluído ou reaberto.
+- `onboarding.complete` calcula um nível inicial determinístico a partir de experiência, skills e autoavaliação.
+- A dashboard hidrata o progresso remoto quando existe sessão; sem sessão, mantém o comportamento local.
 
 ## Decisões de arquitetura
 - **Frontend:** React + TypeScript + Vite do starter web-db-user.
