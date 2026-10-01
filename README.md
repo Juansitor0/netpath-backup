@@ -84,6 +84,7 @@ O `origin` gerenciado pela Manus continua sendo o repositório principal. O remo
 - [`docs/architecture.md`](docs/architecture.md): arquitetura e fases do produto.
 - [`docs/catalog-import.md`](docs/catalog-import.md): formato JSON/CSV e regras de importação.
 - [`docs/manual-update.md`](docs/manual-update.md): checklist para alterações manuais.
+- [`docs/database-access.md`](docs/database-access.md): acesso ao banco, migrations, permissões e publicação.
 - [`docs/integrations/nicbr.md`](docs/integrations/nicbr.md): primeira fonte externa planejada.
 - [`docs/deployment-github-pages.md`](docs/deployment-github-pages.md): publicação automática e limites do GitHub Pages.
 - [`data/catalog/README.md`](data/catalog/README.md): finalidade dos arquivos versionados.
