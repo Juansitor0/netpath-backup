@@ -1,40 +1,31 @@
-# Integração NIC.br
 
-## Fonte inicial
+## Uso no produto
 
-A primeira fonte externa é a agenda pública oficial:
+A aba **Novidades & oportunidades** lê os itens persistidos do catálogo e permite filtrar por curso ou evento. Cada item pode mostrar status de inscrição, data, provedor, descrição, link oficial e relação com a rota técnica.
 
-- Agenda: <https://cursoseventos.nic.br/agenda>
-- Semana de Capacitação: <https://semanacap.bcp.nic.br/>
-- Notícias e releases: <https://nic.br/noticias/indice/>
+Fontes oficiais atuais:
 
-A agenda apresenta cursos, turmas, eventos, modalidades, períodos de inscrição, datas e links. Esses dados entram no contrato genérico de `CatalogItem`.
+- [Agenda Cursos e Eventos](https://cursoseventos.nic.br/agenda)
+- [Semana de Capacitação](https://semanacap.bcp.nic.br/)
+- [NIC.br Notícias](https://nic.br/noticias/indice/)
+- [Intra Rede](https://intrarede.nic.br/)
 
-## Decisão técnica
+## Estratégia de integração
 
-O NetPath começa pela agenda pública e por um adaptador isolado. Não tratamos endpoints internos do portal como API pública estável: eles podem mudar sem aviso e não devem ser a única base do produto.
+O portal de agenda é uma página HTML pública, não uma API REST documentada. Por isso o NetPath não faz chamadas diretas do navegador nem trata endpoints internos como contrato estável.
 
-O registro da fonte está em `data/catalog/sources.json` e o contrato do adaptador em `server/catalog/nicbr.ts`.
+Uma rotina de sincronização deve:
 
-## Campos normalizados
+1. buscar a página oficial no backend;
+2. extrair apenas campos públicos e necessários;
+3. validar cada candidato com Zod;
+4. gerar um ID estável por fonte + identificador/título;
+5. preservar alterações manuais (`isManualOverride`);
+6. registrar `catalog_sync_runs`;
+7. mostrar a prévia antes de aplicar alterações.
 
-- título e provedor;
-- tipo: curso ou evento;
-- modalidade;
-- data de início e fim;
-- janela de inscrição;
-- carga horária, quando publicada;
-- tópicos;
-- URL oficial;
-- status do item;
-- data da última atualização.
+Até o parser automático estar validado, a entrada oficial pode ser revisada e importada pelo JSON versionado. Isso evita gravar HTML quebrado ou depender silenciosamente de uma estrutura interna que pode mudar.
 
-## Política planejada
+## Recomendação futura
 
-- sincronização diária no backend publicado;
-- botão de sincronização manual;
-- prévia de novos cursos e mudanças;
-- preservação de edições editoriais;
-- associação opcional com etapas e certificações da trilha.
-
-A sincronização real e o agendamento entram depois que o backend e o banco forem habilitados.
+O agente de IA poderá classificar relevância e explicar por que uma oportunidade é interessante, mas a data, URL, status e origem devem continuar vindo da fonte e passando por validação determinística.

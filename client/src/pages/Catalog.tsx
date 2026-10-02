@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { AlertCircle, ArrowUpRight, BookOpen, CheckCircle2, Database, FileUp, RefreshCw, ShieldCheck, UploadCloud } from "lucide-react";
+import { AlertCircle, ArrowUpRight, BookOpen, CalendarDays, CheckCircle2, Database, ExternalLink, FileUp, Filter, RefreshCw, ShieldCheck, Sparkles, UploadCloud } from "lucide-react";
 import { catalogImportFileSchema, type CatalogImportFile } from "@shared/catalog";
 import { startLogin } from "../const";
 import { certifications as localCertifications } from "../data/netpath";
@@ -25,8 +25,11 @@ export default function Catalog() {
     onError: (error) => setMessage({ type: "error", text: error.message || "Não foi possível aplicar o arquivo." }),
   });
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<"opportunities" | "certifications" | "sources">("opportunities");
+  const [typeFilter, setTypeFilter] = useState<"all" | "course" | "event">("all");
 
   const liveCertifications = catalogQuery.data?.certifications ?? [];
+  const liveItems = catalogQuery.data?.items ?? [];
   const usingFallback = !catalogQuery.data || liveCertifications.length === 0;
   const cards = usingFallback
     ? localCertifications.map((certification) => ({
@@ -39,6 +42,9 @@ export default function Catalog() {
         status: "active",
       }))
     : liveCertifications;
+  const opportunities = liveItems
+    .filter((item) => typeFilter === "all" || item.type === typeFilter)
+    .sort((a, b) => Number(b.status === "open") - Number(a.status === "open"));
 
   async function handleImport(file: File) {
     setMessage(null);
@@ -81,10 +87,17 @@ export default function Catalog() {
         <div className="catalog-actions"><button className="outline-button" onClick={() => catalogQuery.refetch()} disabled={catalogQuery.isFetching}><RefreshCw size={14} className={catalogQuery.isFetching ? "spin" : ""} /> Atualizar</button><input ref={fileInputRef} type="file" accept="application/json,.json" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void handleImport(file); }} /><button className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending}><FileUp size={15} /> Importar JSON</button></div>
       </div>
 
-      <section className="catalog-source-strip"><div className="source-avatar">N</div><div><span className="mini-eyebrow">FONTE MONITORADA</span><strong>NIC.br — Cursos e eventos</strong><small>Agenda pública · sincronização diária planejada · <a href="https://cursoseventos.nic.br/agenda" target="_blank" rel="noreferrer">abrir fonte <ArrowUpRight size={12} /></a></small></div><span className="source-status">ATIVA</span></section>
+      <section className="catalog-source-strip"><div className="source-avatar">N</div><div><span className="mini-eyebrow">FONTE MONITORADA</span><strong>NIC.br — Cursos e eventos</strong><small>Agenda pública · atualização sob demanda · <a href="https://cursoseventos.nic.br/agenda" target="_blank" rel="noreferrer">abrir fonte <ArrowUpRight size={12} /></a></small></div><span className="source-status">ATIVA</span></section>
 
-      <div className="catalog-section-heading"><div><span className="eyebrow">CERTIFICAÇÕES NA BASE</span><h3>Rota editorial</h3></div><span>{usingFallback ? "Dados locais do MVP" : "Dados persistidos"}</span></div>
-      <div className="catalog-card-grid">{cards.map((certification) => <article className={`catalog-card cert-${toneForProvider(certification.provider)}`} key={certification.id}><div className="catalog-card-top"><div className="catalog-provider-mark">{certification.provider.slice(0, 2).toUpperCase()}</div><span className="catalog-level">{certification.level}</span></div><h3>{certification.name}</h3><strong>{certification.provider}</strong><p>{certification.description}</p><div className="catalog-card-footer"><span>{certification.roadmapStepId ? `Etapa: ${certification.roadmapStepId}` : "Sem etapa vinculada"}</span><span className="catalog-active"><i /> {certification.status}</span></div></article>)}</div>
+      <div className="catalog-tabs" role="tablist" aria-label="Conteúdo do catálogo"><button className={activeTab === "opportunities" ? "active" : ""} onClick={() => setActiveTab("opportunities")}><Sparkles size={15} /> Novidades & oportunidades</button><button className={activeTab === "certifications" ? "active" : ""} onClick={() => setActiveTab("certifications")}><ShieldCheck size={15} /> Certificações</button><button className={activeTab === "sources" ? "active" : ""} onClick={() => setActiveTab("sources")}><Database size={15} /> Fontes</button></div>
+
+      {activeTab === "opportunities" && <>
+        <div className="catalog-opportunity-head"><div><span className="eyebrow">CURADORIA DA ROTA</span><h3>O que vale fazer agora?</h3><p>O NetPath prioriza oportunidades abertas e relaciona cada item ao próximo passo técnico.</p></div><div className="opportunity-filters"><Filter size={14} /><button className={typeFilter === "all" ? "active" : ""} onClick={() => setTypeFilter("all")}>Tudo</button><button className={typeFilter === "course" ? "active" : ""} onClick={() => setTypeFilter("course")}>Cursos</button><button className={typeFilter === "event" ? "active" : ""} onClick={() => setTypeFilter("event")}>Eventos</button></div></div>
+        {opportunities.length > 0 ? <div className="opportunity-grid">{opportunities.map((item) => <article className="opportunity-card" key={item.id}><div className="opportunity-card-top"><span className={`opportunity-type ${item.type}`}>{item.type === "course" ? <BookOpen size={12} /> : <CalendarDays size={12} />} {item.type === "course" ? "CURSO" : "EVENTO"}</span><span className={`opportunity-status ${item.status}`}>{item.status === "open" ? "INSCRIÇÕES ABERTAS" : item.status.toUpperCase()}</span></div><h3>{item.title}</h3><p>{item.description || "Conteúdo técnico selecionado a partir de uma fonte oficial."}</p><div className="opportunity-meta">{item.startDate && <span><CalendarDays size={13} /> {item.startDate}</span>}<span>{item.provider}</span></div><div className="opportunity-footer"><span className="recommendation-label"><Sparkles size={12} /> Relevante para sua rota</span>{item.url && <a href={item.url} target="_blank" rel="noreferrer" className="outline-button">Ver oportunidade <ExternalLink size={13} /></a>}</div></article>)}</div> : <div className="catalog-empty"><Sparkles size={20} /><strong>Estamos preparando suas oportunidades.</strong><p>Atualize o catálogo ou importe a agenda validada do NIC.br para começar a receber cursos e eventos aqui.</p><a href="https://cursoseventos.nic.br/agenda" target="_blank" rel="noreferrer" className="outline-button">Consultar agenda oficial <ArrowUpRight size={13} /></a></div>}
+      </>}
+
+      {activeTab === "certifications" && <><div className="catalog-section-heading"><div><span className="eyebrow">CERTIFICAÇÕES NA BASE</span><h3>Rota editorial</h3></div><span>{usingFallback ? "Dados locais do MVP" : "Dados persistidos"}</span></div><div className="catalog-card-grid">{cards.map((certification) => <article className={`catalog-card cert-${toneForProvider(certification.provider)}`} key={certification.id}><div className="catalog-card-top"><div className="catalog-provider-mark">{certification.provider.slice(0, 2).toUpperCase()}</div><span className="catalog-level">{certification.level}</span></div><h3>{certification.name}</h3><strong>{certification.provider}</strong><p>{certification.description}</p><div className="catalog-card-footer"><span>{certification.roadmapStepId ? `Etapa: ${certification.roadmapStepId}` : "Sem etapa vinculada"}</span><span className="catalog-active"><i /> {certification.status}</span></div></article>)}</div></>}
+      {activeTab === "sources" && <div className="source-directory"><article><div className="source-avatar">N</div><div><span className="mini-eyebrow">AGENDA OFICIAL</span><h3>NIC.br / Cursos e Eventos</h3><p>Agenda de cursos, eventos e formações técnicas para profissionais de redes e provedores.</p><a href="https://cursoseventos.nic.br/agenda" target="_blank" rel="noreferrer">Abrir fonte <ExternalLink size={13} /></a></div><span className="source-status">ATIVA</span></article><article><div className="source-avatar">S</div><div><span className="mini-eyebrow">CONTEÚDO TÉCNICO</span><h3>Semana de Capacitação</h3><p>Minicursos gratuitos sobre RPKI, DNS, MPLS, Segment Routing, VoIP e IPv6.</p><a href="https://semanacap.bcp.nic.br/" target="_blank" rel="noreferrer">Abrir fonte <ExternalLink size={13} /></a></div><span className="source-status">ATIVA</span></article></div>}
       <p className="catalog-footnote"><UploadCloud size={14} /> A importação JSON valida o arquivo antes de gravar. Cursos e certificações externos não substituem edições manuais sem uma ação explícita.</p>
     </div>
   );
