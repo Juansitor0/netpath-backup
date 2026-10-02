@@ -262,8 +262,4 @@ export const stageMeta: Record<StageId, { title: string; subtitle: string; color
   avancado: { title: "Avançado", subtitle: "Arquitetura e senioridade", color: "coral" },
 };
 
-export const initialCompleted: Record<string, boolean> = {
-  fundamentos: true,
-  subnetting: true,
-  switching: true,
-};
+export const initialCompleted: Record<string, boolean> = {};

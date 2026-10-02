@@ -63,6 +63,7 @@ export const catalogSources = mysqlTable("catalog_sources", {
   homepage: varchar("homepage", { length: 512 }).notNull(),
   endpoint: varchar("endpoint", { length: 512 }),
   notes: text("notes"),
+  scheduleTaskUid: varchar("scheduleTaskUid", { length: 120 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

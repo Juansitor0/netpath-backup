@@ -8,6 +8,8 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { seedCatalogDefaults } from "../catalog/seed";
+import { runScheduledNicBrSync } from "../catalog/repository";
+import { sdk } from "./sdk";
 
 async function startServer() {
   const app = express();
@@ -18,6 +20,17 @@ async function startServer() {
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
   app.get("/api/platform/config.js", (_req, res) => {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
+  });
+  app.post("/api/scheduled/catalog-nicbr", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid) return res.status(403).json({ error: "Scheduled identity required" });
+      const result = await runScheduledNicBrSync(user.taskUid);
+      return res.status(200).json({ ok: true, source: "nicbr", ...result });
+    } catch (error) {
+      console.error("[Catalog] Scheduled NIC.br sync failed:", error);
+      return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : "Scheduled sync failed" });
+    }
   });
   registerOAuthRoutes(app);
   void seedCatalogDefaults();

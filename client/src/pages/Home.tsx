@@ -55,7 +55,7 @@ const stageOrder: StageId[] = ["base", "fundamentos", "especialista", "avancado"
 function getStoredProgress() {
   if (typeof window === "undefined") return initialCompleted;
   try {
-    const stored = window.localStorage.getItem("netpath-progress");
+    const stored = window.localStorage.getItem("netpath-progress-v2");
     return stored ? { ...initialCompleted, ...JSON.parse(stored) } : initialCompleted;
   } catch {
     return initialCompleted;
@@ -125,7 +125,7 @@ function Sidebar({ activeView, setActiveView, collapsed, setCollapsed, progress 
   );
 }
 
-function PageHeader({ activeView, onMobileMenu }: { activeView: ViewId; onMobileMenu: () => void }) {
+function PageHeader({ activeView, onMobileMenu, userName, userRole }: { activeView: ViewId; onMobileMenu: () => void; userName: string; userRole: string }) {
   const current = navItems.find((item) => item.id === activeView) ?? navItems[0];
   return (
     <header className="page-header">
@@ -138,7 +138,7 @@ function PageHeader({ activeView, onMobileMenu }: { activeView: ViewId; onMobile
       <div className="header-actions">
         <button className="icon-button" aria-label="Pesquisar"><Search size={18} /></button>
         <div className="header-divider" />
-        <div className="user-chip"><span className="user-avatar">JR</span><div><strong>João Ribeiro</strong><span>Network engineer</span></div><ChevronRight size={15} /></div>
+        <div className="user-chip"><span className="user-avatar">{userName.slice(0, 2).toUpperCase()}</span><div><strong>{userName}</strong><span>{userRole}</span></div><ChevronRight size={15} /></div>
       </div>
     </header>
   );
@@ -286,7 +286,7 @@ export default function Home() {
   const workspaceQuery = trpc.progress.workspace.useQuery(undefined, { enabled: Boolean(authQuery.data), retry: false });
   const progressMutation = trpc.progress.set.useMutation();
 
-  useEffect(() => { window.localStorage.setItem("netpath-progress", JSON.stringify(completed)); }, [completed]);
+  useEffect(() => { window.localStorage.setItem("netpath-progress-v2", JSON.stringify(completed)); }, [completed]);
   useEffect(() => {
     if (!workspaceQuery.data || workspaceQuery.data.progress.length === 0) return;
     const remoteCompleted = Object.fromEntries(workspaceQuery.data.progress.filter((item) => item.status === "completed").map((item) => [item.stepId, true]));
@@ -303,10 +303,13 @@ export default function Home() {
   };
   const completedCount = roadmapSteps.filter((step) => completed[step.id]).length;
   const progress = Math.round((completedCount / roadmapSteps.length) * 100);
-  const nextStep = roadmapSteps.find((step) => !completed[step.id] && canStart(step)) ?? roadmapSteps[roadmapSteps.length - 1];
+  const activeStepId = workspaceQuery.data?.progress.find((item) => item.status === "in_progress")?.stepId;
+  const nextStep = (activeStepId && roadmapSteps.find((step) => step.id === activeStepId)) || roadmapSteps.find((step) => !completed[step.id] && canStart(step)) || roadmapSteps[roadmapSteps.length - 1];
   const unlockedAchievements = useMemo(() => achievements.filter((achievement) => completedCount >= achievement.threshold).length, [completedCount]);
 
   const handleNavigation = (view: ViewId) => { setActiveView(view); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
-  return <div className="app-shell"><div className={cn("mobile-backdrop", mobileMenuOpen && "visible")} onClick={() => setMobileMenuOpen(false)} /><div className={cn("sidebar-wrap", mobileMenuOpen && "mobile-open")}><Sidebar activeView={activeView} setActiveView={handleNavigation} collapsed={collapsed} setCollapsed={setCollapsed} progress={progress} /></div><main className="main-area"><PageHeader activeView={activeView} onMobileMenu={() => setMobileMenuOpen(true)} />{activeView === "overview" && <Overview completed={completed} canStart={canStart} onToggle={toggleStep} progress={progress} nextStep={nextStep} unlockedAchievements={unlockedAchievements} />}{activeView === "roadmap" && <Roadmap completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "certifications" && <CertificationsView completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "catalog" && <Catalog />}{activeView === "achievements" && <AchievementsView completed={completed} />}</main></div>;
+  const userName = authQuery.data?.name?.trim() || workspaceQuery.data?.profile?.roleTitle || "Profissional de redes";
+  const userRole = workspaceQuery.data?.profile?.roleTitle || "Sua jornada NetPath";
+  return <div className="app-shell"><div className={cn("mobile-backdrop", mobileMenuOpen && "visible")} onClick={() => setMobileMenuOpen(false)} /><div className={cn("sidebar-wrap", mobileMenuOpen && "mobile-open")}><Sidebar activeView={activeView} setActiveView={handleNavigation} collapsed={collapsed} setCollapsed={setCollapsed} progress={progress} /></div><main className="main-area"><PageHeader activeView={activeView} onMobileMenu={() => setMobileMenuOpen(true)} userName={userName} userRole={userRole} />{activeView === "overview" && <Overview completed={completed} canStart={canStart} onToggle={toggleStep} progress={progress} nextStep={nextStep} unlockedAchievements={unlockedAchievements} />}{activeView === "roadmap" && <Roadmap completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "certifications" && <CertificationsView completed={completed} canStart={canStart} onToggle={toggleStep} />}{activeView === "catalog" && <Catalog />}{activeView === "achievements" && <AchievementsView completed={completed} />}</main></div>;
 }

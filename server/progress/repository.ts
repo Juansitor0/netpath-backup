@@ -37,6 +37,7 @@ export async function completeOnboarding(input: {
   recommendedLevel: RoadmapLevel;
   confirmedLevel: RoadmapLevel;
   quizScore: number;
+  nextStepId: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
@@ -71,7 +72,9 @@ export async function completeOnboarding(input: {
       confirmedLevel: input.confirmedLevel,
     }).$returningId();
 
-    return { sessionId: session?.id ?? null, level: input.confirmedLevel, quizScore: input.quizScore };
+    await tx.insert(userProgress).values({ userId: input.userId, stepId: input.nextStepId, status: "in_progress", source: "onboarding" }).onDuplicateKeyUpdate({ set: { status: "in_progress", source: "onboarding" } });
+
+    return { sessionId: session?.id ?? null, level: input.confirmedLevel, quizScore: input.quizScore, nextStepId: input.nextStepId };
   });
 }
 

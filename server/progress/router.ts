@@ -37,6 +37,7 @@ export const onboardingRouter = router({
         recommendedLevel: evaluation.recommendedLevel,
         confirmedLevel,
         quizScore: evaluation.score,
+        nextStepId: evaluation.nextStepId,
       });
     }),
 });
@@ -50,5 +51,6 @@ function evaluateLevel(yearsExperience: number, skills: string[], answers: Recor
   const breadthScore = Math.min(20, skills.length * 4);
   const score = Math.min(100, quizScore + experienceScore + breadthScore);
   const recommendedLevel: RoadmapLevel = score >= 76 ? "senior" : score >= 51 ? "pleno" : score >= 26 ? "fundamentos" : "base";
-  return { score, recommendedLevel };
+  const nextStepId = recommendedLevel === "base" ? "fundamentos" : recommendedLevel === "fundamentos" ? "routing" : recommendedLevel === "pleno" ? "automation" : "design";
+  return { score, recommendedLevel, nextStepId };
 }

@@ -15,14 +15,15 @@ import { NIC_BR_ENDPOINTS, NIC_BR_SOURCE, normalizeNicBrCandidate, parseNicBrAge
 
 export async function listCatalog() {
   const db = await getDb();
-  if (!db) return { sources: [], certifications: [], items: [], lastImport: null };
-  const [sources, certificationRows, items, importRows] = await Promise.all([
+  if (!db) return { sources: [], certifications: [], items: [], lastImport: null, lastSync: null };
+  const [sources, certificationRows, items, importRows, syncRows] = await Promise.all([
     db.select().from(catalogSources).orderBy(catalogSources.name),
     db.select().from(certifications).where(eq(certifications.status, "active")).orderBy(certifications.name),
     db.select().from(catalogItems).orderBy(desc(catalogItems.updatedAt)),
     db.select().from(catalogImports).orderBy(desc(catalogImports.createdAt)).limit(1),
+    db.select().from(catalogSyncRuns).orderBy(desc(catalogSyncRuns.startedAt)).limit(1),
   ]);
-  return { sources, certifications: certificationRows, items, lastImport: importRows[0] ?? null };
+  return { sources, certifications: certificationRows, items, lastImport: importRows[0] ?? null, lastSync: syncRows[0] ?? null };
 }
 
 export async function applyCatalogImport(input: CatalogImportFile, createdBy?: number, fileName?: string, format: "json" | "csv" = "json") {
@@ -59,7 +60,7 @@ export async function previewNicBrSync() {
   return { source: NIC_BR_SOURCE, fetchedAt: new Date().toISOString(), total: changes.length, newCount: changes.filter((item) => item.change === "new").length, updatedCount: changes.filter((item) => item.change === "updated").length, unchangedCount: changes.filter((item) => item.change === "unchanged").length, items: changes.filter((item) => item.change !== "unchanged").map(({ item, change }) => ({ ...item, change })) };
 }
 
-export async function applyNicBrSync(items: NicBrCandidate[], createdBy: number) {
+export async function applyNicBrSync(items: NicBrCandidate[], _createdBy: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const normalized = items.map((item) => normalizeNicBrCandidate(item));
@@ -77,6 +78,21 @@ export async function applyNicBrSync(items: NicBrCandidate[], createdBy: number)
     const [run] = await tx.insert(catalogSyncRuns).values({ sourceId: NIC_BR_SOURCE.id, status: "completed", foundCount: normalized.length, newCount, updatedCount, finishedAt: new Date() }).$returningId();
     return { syncRunId: run?.id ?? null, foundCount: normalized.length, newCount, updatedCount };
   });
+}
+
+export async function bindNicBrScheduleTask(taskUid: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(catalogSources).set({ scheduleTaskUid: taskUid }).where(eq(catalogSources.id, NIC_BR_SOURCE.id));
+}
+
+export async function runScheduledNicBrSync(taskUid: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [source] = await db.select({ id: catalogSources.id }).from(catalogSources).where(eq(catalogSources.scheduleTaskUid, taskUid)).limit(1);
+  if (source?.id !== NIC_BR_SOURCE.id) throw new Error("NIC.br schedule is not bound to this project source");
+  const preview = await previewNicBrSync();
+  return applyNicBrSync(preview.items, -1);
 }
 
 function hasChanged(previous: { title: string; description: string | null; url: string | null; status: string; startDate: string | null }, next: { title: string; description?: string; url?: string; status: string; startDate?: string | null }) {

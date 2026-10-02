@@ -1,0 +1,1 @@
+ALTER TABLE `catalog_sources` ADD `scheduleTaskUid` varchar(120);
