@@ -72,11 +72,58 @@ export function normalizeNicBrCandidate(input: unknown): CatalogItem {
   };
 }
 
+/**
+ * Parser deliberadamente limitado aos cartões públicos da agenda.
+ * O HTML pode mudar; candidatos inválidos são descartados pelo schema.
+ */
+export function parseNicBrAgendaHtml(html: string): NicBrCandidate[] {
+  const candidates: NicBrCandidate[] = [];
+  const headingPattern = /<h2[^>]*class=["'][^"']*title-acontece-home[^"']*["'][^>]*>([\s\S]*?)<\/h2>/gi;
+  const headings = [...html.matchAll(headingPattern)];
+
+  for (let index = 0; index < headings.length; index += 1) {
+    const title = cleanText(headings[index][1]);
+    if (!title || /nenhum evento|agenda com todos/i.test(title)) continue;
+    const start = headings[index].index ?? 0;
+    const end = headings[index + 1]?.index ?? Math.min(html.length, start + 24000);
+    const block = html.slice(start, end);
+    const subtitle = cleanText(block.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i)?.[1] ?? "");
+    const description = cleanText(block.match(/<p[^>]*>([\s\S]*?)<\/p>/i)?.[1] ?? subtitle);
+    const registrationHref = block.match(/<a[^>]+href=["']([^"']+)["'][^>]*title=["']Inscri/i)?.[1];
+    const url = registrationHref ? new URL(registrationHref, NIC_BR_ENDPOINTS.agenda).toString() : NIC_BR_ENDPOINTS.agenda;
+    const dateText = cleanText(block.match(/(?:Quando|Inscri[cç][oõ]es):[\s\S]{0,240}/i)?.[0] ?? "");
+    const type = /evento|fórum|forum|live|semana de capacitação/i.test(`${title} ${subtitle}`) ? "event" : "course";
+    const modality = /presencial|auditório|blumenau|s[aã]o paulo|lajeado/i.test(block) ? "in-person" : /a distância|online|on-line|youtube/i.test(block) ? "online" : "unknown";
+    const topics = topicMatches(`${title} ${subtitle} ${description}`);
+    const externalId = block.match(/\/turma\/([^"'/?]+)/i)?.[1] ?? `${slugify(title)}-${index + 1}`;
+
+    candidates.push(nicBrCandidateSchema.parse({
+      externalId,
+      title: subtitle && subtitle !== title ? `${title} — ${subtitle}` : title,
+      type,
+      provider: /cisco/i.test(title) ? "NIC.br + Cisco" : /huawei|hcia/i.test(title) ? "NIC.br + Huawei" : "NIC.br",
+      description: description.slice(0, 4000),
+      url,
+      modality,
+      status: /inscri[cç][oõ]es/i.test(block) ? "open" : "upcoming",
+      startDate: dateText.slice(0, 160) || null,
+      topics,
+      tags: [type === "event" ? "evento" : "curso", "NIC.br", ...topics].slice(0, 12),
+    }));
+  }
+
+  return candidates;
+}
+
+function topicMatches(value: string) {
+  const dictionary = ["IPv4", "IPv6", "BGP", "OSPF", "RPKI", "DNS", "MPLS", "Segment Routing", "VoIP", "automação", "segurança", "Cisco", "Huawei", "CCNA", "HCIA"];
+  return dictionary.filter((topic) => value.toLocaleLowerCase("pt-BR").includes(topic.toLocaleLowerCase("pt-BR")));
+}
+
+function cleanText(value: string) {
+  return value.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+}
+
 function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }

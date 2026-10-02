@@ -24,6 +24,22 @@ export default function Catalog() {
     },
     onError: (error) => setMessage({ type: "error", text: error.message || "Não foi possível aplicar o arquivo." }),
   });
+  const [syncPreview, setSyncPreview] = useState<any>(null);
+  const syncPreviewMutation = trpc.catalog.previewNicBr.useMutation({
+    onSuccess: (result) => {
+      setSyncPreview(result);
+      setMessage({ type: "success", text: `Prévia concluída: ${result.newCount} novos e ${result.updatedCount} alterados.` });
+    },
+    onError: (error) => setMessage({ type: "error", text: error.message || "Não foi possível buscar a agenda NIC.br." }),
+  });
+  const applySyncMutation = trpc.catalog.applyNicBr.useMutation({
+    onSuccess: async (result) => {
+      setSyncPreview(null);
+      setMessage({ type: "success", text: `Sincronização aplicada: ${result.newCount} novos e ${result.updatedCount} alterados.` });
+      await catalogQuery.refetch();
+    },
+    onError: (error) => setMessage({ type: "error", text: error.message || "Não foi possível aplicar a sincronização." }),
+  });
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [activeTab, setActiveTab] = useState<"opportunities" | "certifications" | "sources">("opportunities");
   const [typeFilter, setTypeFilter] = useState<"all" | "course" | "event">("all");
@@ -84,8 +100,10 @@ export default function Catalog() {
 
       <div className="catalog-toolbar">
         <div className="catalog-stats"><div><Database size={16} /><strong>{catalogQuery.data?.sources.length ?? 2}</strong><span>fontes</span></div><div><ShieldCheck size={16} /><strong>{cards.length}</strong><span>certificações</span></div><div><BookOpen size={16} /><strong>{catalogQuery.data?.items.length ?? 0}</strong><span>cursos/eventos</span></div></div>
-        <div className="catalog-actions"><button className="outline-button" onClick={() => catalogQuery.refetch()} disabled={catalogQuery.isFetching}><RefreshCw size={14} className={catalogQuery.isFetching ? "spin" : ""} /> Atualizar</button><input ref={fileInputRef} type="file" accept="application/json,.json" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void handleImport(file); }} /><button className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending}><FileUp size={15} /> Importar JSON</button></div>
+        <div className="catalog-actions"><button className="outline-button" onClick={() => catalogQuery.refetch()} disabled={catalogQuery.isFetching}><RefreshCw size={14} className={catalogQuery.isFetching ? "spin" : ""} /> Atualizar</button>{currentUser.data?.role === "admin" && <button className="outline-button" onClick={() => syncPreviewMutation.mutate()} disabled={syncPreviewMutation.isPending}><RefreshCw size={14} className={syncPreviewMutation.isPending ? "spin" : ""} /> Buscar NIC.br</button>}<input ref={fileInputRef} type="file" accept="application/json,.json" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void handleImport(file); }} /><button className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending}><FileUp size={15} /> Importar JSON</button></div>
       </div>
+
+      {syncPreview && <section className="sync-preview-panel"><div><span className="eyebrow">PRÉVIA ADMINISTRATIVA / NIC.BR</span><h3>Revisar antes de aplicar</h3><p>Fonte consultada em {new Date(syncPreview.fetchedAt).toLocaleString("pt-BR")}. Itens sem mudança não serão gravados novamente.</p></div><div className="sync-preview-stats"><span><strong>{syncPreview.total}</strong> encontrados</span><span className="new"><strong>{syncPreview.newCount}</strong> novos</span><span className="updated"><strong>{syncPreview.updatedCount}</strong> alterados</span></div>{syncPreview.items.length > 0 && <div className="sync-preview-list">{syncPreview.items.slice(0, 8).map((item: any) => <div key={item.id}><span className={`sync-change ${item.change}`}>{item.change === "new" ? "NOVO" : "ALTERADO"}</span><strong>{item.title}</strong><small>{item.type} · {item.status}</small></div>)}</div>}<div className="sync-preview-actions"><button className="outline-button" onClick={() => setSyncPreview(null)}>Cancelar</button><button className="primary-button" onClick={() => applySyncMutation.mutate({ items: syncPreview.items })} disabled={applySyncMutation.isPending || syncPreview.items.length === 0}>{applySyncMutation.isPending ? "Aplicando..." : `Aplicar ${syncPreview.items.length} alterações`}</button></div></section>}
 
       <section className="catalog-source-strip"><div className="source-avatar">N</div><div><span className="mini-eyebrow">FONTE MONITORADA</span><strong>NIC.br — Cursos e eventos</strong><small>Agenda pública · atualização sob demanda · <a href="https://cursoseventos.nic.br/agenda" target="_blank" rel="noreferrer">abrir fonte <ArrowUpRight size={12} /></a></small></div><span className="source-status">ATIVA</span></section>
 

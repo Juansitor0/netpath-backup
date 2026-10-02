@@ -1,7 +1,8 @@
 import { catalogImportFileSchema } from "@shared/catalog";
 import { z } from "zod";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
-import { applyCatalogImport, listCatalog } from "./repository";
+import { applyCatalogImport, applyNicBrSync, listCatalog, previewNicBrSync } from "./repository";
+import { nicBrCandidateSchema } from "./nicbr";
 
 export const catalogRouter = router({
   list: publicProcedure.query(() => listCatalog()),
@@ -35,4 +36,10 @@ export const catalogRouter = router({
       payload: catalogImportFileSchema,
     }))
     .mutation(({ input, ctx }) => applyCatalogImport(input.payload, ctx.user.id, input.fileName, input.format)),
+
+  previewNicBr: adminProcedure.mutation(() => previewNicBrSync()),
+
+  applyNicBr: adminProcedure
+    .input(z.object({ items: z.array(nicBrCandidateSchema).max(500) }))
+    .mutation(({ input, ctx }) => applyNicBrSync(input.items, ctx.user.id)),
 });
