@@ -70,6 +70,7 @@ export async function applyNicBrSync(items: NicBrCandidate[], createdBy: number)
     for (const item of normalized) {
       const [previous] = await tx.select().from(catalogItems).where(eq(catalogItems.id, item.id)).limit(1);
       const values: InsertCatalogItem = { id: item.id, sourceId: item.sourceId, externalId: item.externalId, type: item.type, title: item.title, provider: item.provider, description: item.description, url: item.url, modality: item.modality, status: item.status, startDate: item.startDate, endDate: item.endDate, registrationStart: item.registrationStart, registrationEnd: item.registrationEnd, durationHours: item.durationHours, topics: item.topics, certificationIds: item.certificationIds, tags: item.tags, isManualOverride: false, sourceUpdatedAt: toDate(item.updatedAt) };
+      if (previous?.isManualOverride) continue;
       if (!previous) newCount += 1; else if (hasChanged(previous, item)) updatedCount += 1; else continue;
       await tx.insert(catalogItems).values(values).onDuplicateKeyUpdate({ set: { externalId: values.externalId, type: values.type, title: values.title, provider: values.provider, description: values.description, url: values.url, modality: values.modality, status: values.status, startDate: values.startDate, endDate: values.endDate, registrationStart: values.registrationStart, registrationEnd: values.registrationEnd, durationHours: values.durationHours, topics: values.topics, certificationIds: values.certificationIds, tags: values.tags, isManualOverride: false, sourceUpdatedAt: values.sourceUpdatedAt } });
     }
