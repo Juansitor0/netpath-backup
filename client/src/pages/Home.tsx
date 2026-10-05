@@ -138,7 +138,7 @@ function PageHeader({ activeView, onMobileMenu, userName, userRole }: { activeVi
       <div className="header-actions">
         <button className="icon-button" aria-label="Pesquisar"><Search size={18} /></button>
         <div className="header-divider" />
-        <div className="user-chip"><span className="user-avatar">{userName.slice(0, 2).toUpperCase()}</span><div><strong>{userName}</strong><span>{userRole}</span></div><ChevronRight size={15} /></div>
+        <a className="user-chip" href="/profile"><span className="user-avatar">{userName.slice(0, 2).toUpperCase()}</span><div><strong>{userName}</strong><span>{userRole}</span></div><ChevronRight size={15} /></a>
       </div>
     </header>
   );

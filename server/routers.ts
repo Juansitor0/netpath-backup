@@ -5,6 +5,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { catalogRouter } from "./catalog/router";
 import { onboardingRouter } from "./progress/router";
 import { progressRouter } from "./progress/router";
+import { profileRouter } from "./profile/router";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -12,6 +13,7 @@ export const appRouter = router({
   catalog: catalogRouter,
   progress: progressRouter,
   onboarding: onboardingRouter,
+  profile: profileRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

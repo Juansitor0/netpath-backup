@@ -53,6 +53,22 @@ export const userProgress = mysqlTable("user_progress", {
   userStepUnique: uniqueIndex("user_progress_user_step_unique").on(table.userId, table.stepId),
 }));
 
+/** Documento profissional privado: o conteúdo extraído é cifrado no servidor. */
+export const resumeDocuments = mysqlTable("resume_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  originalFileName: varchar("originalFileName", { length: 255 }).notNull(),
+  mimeType: varchar("mimeType", { length: 80 }).notNull(),
+  sizeBytes: int("sizeBytes").notNull(),
+  storageKey: varchar("storageKey", { length: 512 }).notNull(),
+  fileHash: varchar("fileHash", { length: 64 }).notNull(),
+  encryptedProfileData: text("encryptedProfileData").notNull(),
+  status: mysqlEnum("status", ["draft", "confirmed", "archived"]).default("draft").notNull(),
+  consentGrantedAt: timestamp("consentGrantedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 /** Fontes editoriais, agendas e APIs que alimentam o catálogo. */
 export const catalogSources = mysqlTable("catalog_sources", {
   id: varchar("id", { length: 80 }).primaryKey(),
@@ -146,6 +162,7 @@ export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = typeof userProfiles.$inferInsert;
 export type OnboardingSession = typeof onboardingSessions.$inferSelect;
 export type UserProgress = typeof userProgress.$inferSelect;
+export type ResumeDocument = typeof resumeDocuments.$inferSelect;
 export type CatalogSource = typeof catalogSources.$inferSelect;
 export type InsertCatalogSource = typeof catalogSources.$inferInsert;
 export type CatalogItem = typeof catalogItems.$inferSelect;
