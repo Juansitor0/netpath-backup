@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { ArrowRight, CheckCircle2, LogIn, Sparkles, Target } from "lucide-react";
-import { startLogin } from "../const";
 import { roadmapSteps } from "../data/netpath";
 import { trpc } from "../lib/trpc";
 
@@ -22,7 +21,7 @@ export default function OnboardingCard() {
   const [skills, setSkills] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
 
-  if (!authQuery.data) return <section className="onboarding-card onboarding-guest"><div className="onboarding-icon"><LogIn size={20} /></div><div><span className="eyebrow">SALVE SUA JORNADA</span><h2>Transforme o mapa em uma rota pessoal.</h2><p>Entre com sua conta para salvar progresso, nivelar seu ponto de partida e receber uma próxima ação clara.</p></div><button className="primary-button" onClick={startLogin}>Entrar <ArrowRight size={15} /></button></section>;
+  if (!authQuery.data) return <section className="onboarding-card onboarding-guest"><div className="onboarding-icon"><LogIn size={20} /></div><div><span className="eyebrow">SALVE SUA JORNADA</span><h2>Transforme o mapa em uma rota pessoal.</h2><p>Entre com sua conta para salvar progresso, nivelar seu ponto de partida e receber uma próxima ação clara.</p></div><a className="primary-button" href="/login">Entrar <ArrowRight size={15} /></a></section>;
 
   if (result) {
     const nextStep = roadmapSteps.find((step) => step.id === result.nextStepId);
