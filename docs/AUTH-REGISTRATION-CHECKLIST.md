@@ -6,7 +6,7 @@ Construir uma jornada clara para que um profissional de redes consiga:
 
 1. Criar uma conta local no NetPath com dados básicos.
 2. Entrar novamente com email e senha.
-3. Usar o login interno atual da Manus sem perder o acesso já existente.
+3. Entrar novamente com uma conta local própria do NetPath.
 4. Conectar o LinkedIn apenas quando desejar usar uma plataforma externa.
 5. Anexar opcionalmente um currículo próprio ou usar um modelo preenchível.
 6. Revisar e confirmar os dados antes de eles influenciarem a trilha profissional.
@@ -17,8 +17,8 @@ Construir uma jornada clara para que um profissional de redes consiga:
 
 - [x] Tela dedicada `/login` publicada.
 - [x] Tela dedicada `/register` publicada.
-- [x] Login Manus OAuth funcionando como autenticação atual.
-- [x] Usuário autenticado é criado/atualizado na tabela `users` pelo callback OAuth.
+- [ ] Implementar autenticação local própria do NetPath como login principal.
+- [ ] Usuário local é criado e autenticado diretamente pelo backend do NetPath.
 - [x] Perfil profissional privado com upload de PDF e revisão publicado.
 - [x] Dados extraídos do currículo são cifrados no servidor.
 - [x] Backup privado do GitHub configurado.
@@ -34,7 +34,8 @@ Construir uma jornada clara para que um profissional de redes consiga:
 ### Métodos de entrada
 
 - **Conta local NetPath:** email + senha, com cadastro e sessão próprios.
-- **Manus:** permanece como método legado/atual durante a transição; não será removido sem migração de contas.
+- **NetPath:** será o único método de conta interna, usando email e senha.
+- **LinkedIn:** será uma conexão externa opcional, acionada somente pelo usuário; não será usado como substituto automático da conta local.
 - **LinkedIn:** somente botão explícito “Conectar LinkedIn”; não será usado para login automático antes do consentimento.
 - O mesmo usuário poderá ter mais de um método vinculado à mesma conta, desde que a vinculação seja confirmada.
 
@@ -71,7 +72,7 @@ Regras propostas:
 - [ ] Cliente acessa `/` e entende a proposta do NetPath.
 - [ ] Cliente escolhe **Criar conta** ou **Entrar**.
 - [ ] Usuário que tentar acessar dados privados sem sessão é direcionado para `/login`.
-- [ ] A tela informa claramente que Manus e LinkedIn são métodos diferentes.
+- [ ] A tela informa claramente que o cadastro é local e que o LinkedIn é opcional.
 
 ### 2. Registro local
 
@@ -105,13 +106,14 @@ Regras propostas:
 - [ ] Login bem-sucedido retorna ao destino original ou à Home.
 - [ ] Logout revoga a sessão local e limpa cookies de sessão.
 
-### 5. Login Manus durante a transição
+### 5. Sessão local do NetPath
 
-- [ ] Botão Manus continua disponível em área identificada como “Entrar com Manus”.
-- [ ] Login Manus não deve pedir senha dentro do NetPath.
-- [ ] Uma conta Manus existente não deve gerar uma segunda conta quando já houver email confirmado igual.
-- [ ] A regra de vinculação por email deve exigir confirmação segura antes de unir identidades.
-- [ ] Migração e união de contas precisam de auditoria e não podem apagar progresso.
+- [ ] O login principal usa email e senha cadastrados no NetPath.
+- [ ] A sessão local usa cookie `HttpOnly`, `Secure` e `SameSite=None` no Preview HTTPS.
+- [ ] Login bem-sucedido retorna ao destino original ou à Home.
+- [ ] Logout revoga a sessão local e limpa cookies de sessão.
+- [ ] A recuperação de senha usa token de uso único e expiração curta.
+- [ ] O fluxo não depende de qualquer conta externa.
 
 ### 6. LinkedIn opcional
 
@@ -154,7 +156,7 @@ Manter a tabela atual para o usuário canônico da aplicação. Contas locais n�
 
 - `id`
 - `userId`
-- `provider` — `local`, `manus`, `linkedin`
+- `provider` — `local`, `linkedin`
 - `providerUserId`
 - `providerEmail`
 - `scopes`
@@ -210,7 +212,7 @@ O currículo continua em `resume_documents`, sempre filtrado por `userId`.
 - [ ] Confirmar campos e mensagens do formulário.
 - [ ] Criar tabelas `local_credentials`, `auth_identities` e `local_sessions`.
 - [ ] Adicionar idade/cargo atual ao perfil.
-- [ ] Definir migração segura para usuários Manus existentes.
+- [ ] Definir a substituição do login atual pela sessão local, preservando os dados de produto necessários.
 
 ### Fase B — registro local
 
@@ -226,28 +228,21 @@ O currículo continua em `resume_documents`, sempre filtrado por `userId`.
 - [ ] Implementar recuperação de senha.
 - [ ] Adicionar rate limit, auditoria e mensagens seguras.
 
-### Fase D — identidade Manus
-
-- [ ] Manter OAuth Manus funcionando.
-- [ ] Criar tela de métodos vinculados.
-- [ ] Definir união segura entre conta local e conta Manus.
-- [ ] Testar preservação de perfil, currículo, onboarding e progresso.
-
-### Fase E — LinkedIn
+### Fase D — LinkedIn opcional
 
 - [ ] Validar aplicação OAuth e escopos disponíveis.
-- [ ] Implementar callback separado do OAuth Manus.
+- [ ] Implementar callback OAuth separado para o LinkedIn.
 - [ ] Salvar identidade vinculada sem copiar dados não autorizados.
 - [ ] Mostrar prévia e solicitar confirmação.
 - [ ] Implementar desconexão.
 
-### Fase F — validação do cenário
+### Fase E — validação do cenário
 
 - [ ] Novo cliente cria conta local sem currículo.
 - [ ] Novo cliente cria conta local com currículo.
 - [ ] Cliente sai e entra novamente com email/senha.
 - [ ] Cliente recupera senha.
-- [ ] Cliente entra via Manus.
+- [ ] Cliente entra novamente com email e senha locais.
 - [ ] Cliente conecta/desconecta LinkedIn.
 - [ ] Cliente confirma e remove currículo.
 - [ ] Um usuário não consegue ler ou alterar dados de outro usuário.
@@ -255,4 +250,4 @@ O currículo continua em `resume_documents`, sempre filtrado por `userId`.
 
 ## Critério de pronto do cenário
 
-O cenário será considerado pronto quando um cliente novo conseguir criar uma conta local com nome, idade, cargo, email e senha, opcionalmente anexar um currículo baseado no modelo, sair e entrar novamente, conectar LinkedIn somente por ação explícita, revisar os dados importados e usar o NetPath sem que credenciais, currículo ou dados profissionais fiquem expostos a outro usuário.
+O cenário será considerado pronto quando um cliente novo conseguir criar uma conta local com nome, idade, cargo, email e senha, opcionalmente anexar um currículo baseado no modelo, sair e entrar novamente, conectar LinkedIn somente por ação explícita, revisar os dados importados e usar o NetPath sem depender de qualquer plataforma externa e sem que credenciais, currículo ou dados profissionais fiquem expostos a outro usuário.
