@@ -1,1 +1,1 @@
-{"routes":[{"path":"/","title":"NetPath"},{"path":"/login","title":"Entrar no NetPath"},{"path":"/profile","title":"Meu perfil profissional"}]}
+{"routes":[{"path":"/","title":"NetPath"},{"path":"/login","title":"Entrar no NetPath"},{"path":"/register","title":"Criar conta no NetPath"},{"path":"/profile","title":"Meu perfil profissional"}]}
