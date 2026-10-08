@@ -1,7 +1,7 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { getDb } from "./db";
-import { users } from "../drizzle/schema";
+import { userProfiles, users } from "../drizzle/schema";
 
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
@@ -31,7 +31,7 @@ export async function createLocalAccount(input: { name: string; age: number; rol
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const email = normalizeEmail(input.email);
-  const openId = `local:${email}`;
+  const openId = `local:${randomBytes(24).toString("hex")}`;
   const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
   if (existing.length) throw new Error("EMAIL_ALREADY_EXISTS");
   const sessionToken = randomBytes(32).toString("base64url");
@@ -47,6 +47,10 @@ export async function createLocalAccount(input: { name: string; age: number; rol
     loginMethod: "local",
     lastSignedIn: now,
   });
+  const created = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+  if (created[0]) {
+    await db.insert(userProfiles).values({ userId: created[0].id, roleTitle: input.roleTitle.trim(), skills: [] });
+  }
   return { sessionToken };
 }
 
